@@ -2,9 +2,14 @@ library(tidyverse)
 
 # Question 1
 
+# read the .csv file
+
 df <- read_csv("graduate_survey.csv")
 
 # 1.a)
+
+# columns are extracted from the greater table. only the columns written are
+# gonna be used throughout the project
 
 df2 <- df %>%
   select(Campus, StudyField, Branch, Role, EduLevel, ProgLang, Databases, Platform,
@@ -12,17 +17,27 @@ df2 <- df %>%
 
 # 1. b)
 
+# row with NA are removed
+
 data <- na.omit(df2)
 
 # 1. c)
+
+# umhlanga campus is changed to durban campus
 
 data$Campus <- gsub("Umhlanga", "Durban", data$Campus)
 
 # 1. d)
 
+# rows are filtered by top 5 campuses with responses
+
+# top 5 campuses are selected
+
 final_data <- data %>%
   count(Campus, sort = TRUE) %>%
   head(5)
+
+# dataset is filtered by the top 5 campuses
 
 subset_df <- data %>%
   filter(Campus %in% final_data$Campus)
@@ -35,18 +50,28 @@ library(ggplot2)
 
 # 1.i
 
+# dataset is subsetted to the tools that graduates use
+
 dev_tools = subset_df %>%
   select(ProgLang, Databases, AISearch, AITool, WebFramework, Platform)
 
 # Programming languages
 
+# programming languages are split
+
 prog_langs <- sapply(dev_tools$ProgLang, function(x) strsplit(x, split = ";")[[1]])
+
+# the split data is unlisted and grouped by count
 
 langs <- unlist(prog_langs)
 
 langs_count <- table(langs)
 
+# the grouped data is turned into a dataframe
+
 langs_df <- as.data.frame(langs_count)
+
+# the dataframe is then used to plot a bar graph
 
 pop_lang <- ggplot(langs_df, aes(x = langs, y = Freq)) +
   geom_bar(stat = "identity", fill = "skyblue") +
@@ -54,6 +79,8 @@ pop_lang <- ggplot(langs_df, aes(x = langs, y = Freq)) +
   labs(y = "", x = "Programming Languages", title = "Programming Languages Popularity")
 
 # Databases
+
+# what is done is the same as what is done above
 
 databases <- sapply(dev_tools$Databases, function(x) strsplit(x, split = ";")[[1]])
 
@@ -176,12 +203,19 @@ pop_roles <- ggplot(roles_df, aes(role_, Freq)) +
 subset_df$Employment <- sapply(subset_df$Employment, function(x) gsub(",", 
                                                                       ";", x))
 
+# subset dataset is separated to StudyField and Employment
+
 employment_field <- subset_df %>%
   select(StudyField, Employment)
+
+# employment field is split by ';'
+# after data is split, it is ungrouped, so as a result there is repeat values
 
 employment_status <- employment_field %>%
   mutate(Employment = strsplit(Employment, ";")) %>%
   unnest(Employment)
+
+# the mutated data is then filtered and grouped by 'employed' and 'not employed'
 
 grouped_employment_studyfield <- employment_status %>%
   filter(Employment == "Employed" | Employment == "Not employed") %>%
@@ -199,6 +233,9 @@ emp_unemp <- ggplot(grouped_employment_studyfield, aes(StudyField, n, fill = Emp
 library(shiny)
 library(shinydashboard)
 library(shinythemes)
+
+# this shiny dashboard uses navbar to display all the different graphs in their
+# separate tabs
 
 ui <- fluidPage(theme = shinytheme("readable"),
                 navbarPage(
@@ -261,6 +298,9 @@ ui <- fluidPage(theme = shinytheme("readable"),
                 
 )
 
+# all the ggplots are passed to the server function as variables and tied to the 
+# input variables in the 'ui' variable from the shiny frontend
+
 server <- function(input, output) {
   output$langPlot <- renderPlot({
     pop_lang
@@ -300,3 +340,17 @@ server <- function(input, output) {
 }
 
 shinyApp(ui, server)
+
+# library to deploy r shiny dashboard
+
+library(rsconnect)
+
+# connect code to shinyapp.io dashboard
+
+rsconnect::setAccountInfo(name='<your name>',
+                          token='<your token?',
+                          secret='<your secret key>')
+
+# connect app to be deployed
+
+rsconnect::deployApp('your/file/directory')
