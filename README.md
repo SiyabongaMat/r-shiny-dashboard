@@ -9,6 +9,7 @@ The code is pretty much straightforward on the information you need to replace.
 
 Go to [Shiny Apps Dashboard](https://www.shinyapps.io/)
 
->[!IMPORTANT]
+> [!IMPORTANT]
+> Key information users need to know to achieve their goal.
 
 > Sign up and follow the directions in your dashboard. Install the rsconnect package and copy and paste their code example with your *Secret Key*
